@@ -5,8 +5,21 @@ import configparser
 import pathlib
 import sys
 
-def get_config_keys():
-    return { 'target.path' }
+def validate_target_path_config(value):
+    path = pathlib.Path(value)
+    if not path.expanduser().is_dir():
+        raise RuntimeError(f'target.path {value} is not a directory')
+    return path.resolve()
+
+config_validators = {
+        'target.path': validate_target_path_config,
+        }
+
+def validate_config_item(key, value):
+    if key not in config_validators.keys():
+        raise RuntimeError(f'Unknown config key: {key}')
+
+    return config_validators[key](value)
 
 class CommandlineParsingError(RuntimeError):
     pass
@@ -89,11 +102,30 @@ def post_process_args(args, config):
             else:
                 raise CommandlineParsingError('target not specified')
 
+def synth_set(key, value):
+    value = str(validate_config_item(key, value))
+
+    section, option = key.split('.')
+
+    path = pathlib.Path('~/.synth.cfg').expanduser()
+
+    parser = configparser.ConfigParser()
+    parser.read(path)
+
+    if not parser.has_section(section):
+        parser.add_section(section)
+
+    parser.set(section, option, value)
+
+    with open(path, 'w') as f:
+        parser.write(f)
+
 def main():
     args = get_parser().parse_args()
     user_config = load_user_config()
     post_process_args(args, user_config)
-    print(args)
+    if args.mode == 'set':
+        synth_set(args.key, args.value)
 
 if __name__ == '__main__':
     sys.exit(main())
