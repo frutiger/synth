@@ -3,6 +3,39 @@
 A tool that simulates a monorepo in a polyrepo world, while allowing local
 patches/modifications that are not present in upstream repos.
 
+## Commands
+
+* `synth init`
+
+    Initialize a new `synth` repository.
+
+* `synth add <origin> [<name>]`
+
+    Track the repository at `<origin>` as one of the modules of this monorepo.
+    By default, the stem of `<origin>` is used as the name of this module. This
+    can be overriden by specifying a `<name>`.
+
+    A `<name>` must be specified if a module already exists with the inferred
+    `<name>`.
+
+* `synth compose [<name>...] <target>`
+
+    Compose a directory structure at `<target>` from the constitutents of this
+    monorepo, applying any patches that were extracted (see `synth extract`)
+    earlier.
+
+    If `<name>`s are specified, only add/update those constituents.
+
+* `synth extract <name> <target>`
+
+    Extract any modifications to the module at `<target>/<name>` into a patch
+    series tracked within this `synth` repo.
+
+* `synth set target.path <path>`
+
+    Update a configuration file setting the default `<target>` path for the
+    `compose` and `extract` subcommands, making that argument optional.
+
 ## License
 
 Copyright (C) 2022 Masud Rahman
@@ -24,4 +57,3 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
-
