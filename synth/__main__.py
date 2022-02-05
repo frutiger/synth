@@ -1,25 +1,10 @@
 # synth.__main__
 
 import argparse
-import configparser
 import pathlib
 import sys
 
-def validate_target_path_config(value):
-    path = pathlib.Path(value)
-    if not path.expanduser().is_dir():
-        raise RuntimeError(f'target.path {value} is not a directory')
-    return path.resolve()
-
-config_validators = {
-        'target.path': validate_target_path_config,
-        }
-
-def validate_config_item(key, value):
-    if key not in config_validators.keys():
-        raise RuntimeError(f'Unknown config key: {key}')
-
-    return config_validators[key](value)
+import synth.usercfg
 
 class CommandlineParsingError(RuntimeError):
     pass
@@ -72,19 +57,9 @@ def get_parser():
     set_parser.add_argument(
             'key',
             metavar='<key>',
-            choices=config_validators.keys())
+            choices=synth.usercfg.validators.keys())
     set_parser.add_argument(dest='value', metavar='<value>')
 
-    return parser
-
-def load_user_config():
-    parser = configparser.ConfigParser()
-
-    path = pathlib.Path('~/.synth.cfg').expanduser()
-    if not path.is_file():
-        return parser
-
-    parser.read(path)
     return parser
 
 def post_process_args(args, config):
@@ -103,27 +78,11 @@ def post_process_args(args, config):
                 raise CommandlineParsingError('target not specified')
 
 def synth_set(key, value):
-    value = str(validate_config_item(key, value))
-
-    section, option = key.split('.')
-
-    path = pathlib.Path('~/.synth.cfg').expanduser()
-
-    parser = configparser.ConfigParser()
-    parser.read(path)
-
-    if not parser.has_section(section):
-        parser.add_section(section)
-
-    parser.set(section, option, value)
-
-    with open(path, 'w') as f:
-        parser.write(f)
+    synth.usercfg.write({ key: value }.items())
 
 def main():
     args = get_parser().parse_args()
-    user_config = load_user_config()
-    post_process_args(args, user_config)
+    post_process_args(args, synth.usercfg.read())
     if args.mode == 'set':
         synth_set(args.key, args.value)
 
