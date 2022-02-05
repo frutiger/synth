@@ -1,10 +1,9 @@
 # synth.__main__
 
 import argparse
-import json
-import pathlib
 import sys
 
+import synth.metadata
 import synth.usercfg
 
 class CommandlineParsingError(RuntimeError):
@@ -82,18 +81,7 @@ def synth_set(key, value):
     synth.usercfg.write({ key: value }.items())
 
 def synth_init():
-    synthdir = pathlib.Path('.synth')
-    if synthdir.exists():
-        raise RuntimeError('synth configuration already exists here')
-    synthdir.mkdir()
-
-    metadata_path = pathlib.Path('.synth/version')
-    metadata = {
-            'VERSION': 1
-            }
-    with open(metadata_path, 'w') as f:
-        json.dump(metadata, f, indent=2)
-        f.write('\n')
+    synth.metadata.initialize()
 
 def main():
     args = get_parser().parse_args()
