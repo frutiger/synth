@@ -1,6 +1,7 @@
 # synth.__main__
 
 import argparse
+import json
 import pathlib
 import sys
 
@@ -80,11 +81,30 @@ def post_process_args(args, config):
 def synth_set(key, value):
     synth.usercfg.write({ key: value }.items())
 
+def synth_init():
+    synthdir = pathlib.Path('.synth')
+    if synthdir.exists():
+        raise RuntimeError('synth configuration already exists here')
+    synthdir.mkdir()
+
+    metadata_path = pathlib.Path('.synth/version')
+    metadata = {
+            'VERSION': 1
+            }
+    with open(metadata_path, 'w') as f:
+        json.dump(metadata, f, indent=2)
+        f.write('\n')
+
 def main():
     args = get_parser().parse_args()
-    post_process_args(args, synth.usercfg.read())
     if args.mode == 'set':
         synth_set(args.key, args.value)
+        return
+
+    if args.mode == 'init':
+        return synth_init()
+
+    post_process_args(args, synth.usercfg.read())
 
 if __name__ == '__main__':
     sys.exit(main())
