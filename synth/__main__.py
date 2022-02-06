@@ -54,11 +54,11 @@ def get_parser():
     extract_parser.add_argument('target', metavar='<target>', nargs='?')
 
     set_parser = subparsers.add_parser(
-            'set',
-            help='Update configuration <key> to <value>')
+            'global',
+            help='Update global configuration <property> to <value>')
     set_parser.add_argument(
-            'key',
-            metavar='<key>',
+            'property',
+            metavar='<property>',
             choices=synth.usercfg.validators.keys())
     set_parser.add_argument(dest='value', metavar='<value>')
 
@@ -86,8 +86,8 @@ def git_cmd(args):
             check=True,
             encoding='ascii').stdout.split('\n')
 
-def synth_set(key, value):
-    synth.usercfg.write({ key: value }.items())
+def synth_global(property, value):
+    synth.usercfg.write({ property: value }.items())
 
 def synth_init():
     synth.metadata.initialize()
@@ -117,8 +117,8 @@ def synth_add(origin, ref, name):
 
 def main():
     args = get_parser().parse_args()
-    if args.mode == 'set':
-        synth_set(args.key, args.value)
+    if args.mode == 'global':
+        synth_global(args.property, args.value)
         return
 
     if args.mode == 'init':

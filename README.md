@@ -33,10 +33,15 @@ reasonably modern version of `git` is available in the user's `PATH`.
     Extract any modifications to the module at `<target>/<name>` into a patch
     series tracked within this `synth` repo.
 
-* `synth set target.path <path>`
+* `synth global <property> <value>`
 
-    Update a configuration file setting the default `<target>` path for the
-    `compose` and `extract` subcommands, making that argument optional.
+    Update the global configuration file at `~/synth.cfg` to set the
+    `<property>` to `<value>`. The following properties are supported:
+
+    * `target.path`
+
+        Set the default `<target>` path for the `compose` and `extract`
+        subcommands, making that argument optional.
 
 ## License
 
