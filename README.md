@@ -1,7 +1,8 @@
 # 🎹 `synth`
 
 A tool that simulates a monorepo in a polyrepo world, while allowing local
-patches/modifications that are not present in upstream repos.
+patches/modifications that are not present in upstream repos. `synth` assumes a
+reasonably modern version of `git` is available in the user's `PATH`.
 
 ## Commands
 
@@ -9,9 +10,10 @@ patches/modifications that are not present in upstream repos.
 
     Initialize a new `synth` repository.
 
-* `synth add <origin> [<name>]`
+* `synth add <origin> [--ref=<ref>] [--name=<name>]`
 
-    Track the repository at `<origin>` as one of the modules of this monorepo.
+    Track the repository at `<origin>` at its current `HEAD` (unless an
+    alternative `<ref>` is specified) as one of the modules of this monorepo.
     By default, the stem of `<origin>` is used as the name of this module. This
     can be overriden by specifying a `<name>`.
 

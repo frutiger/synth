@@ -1,6 +1,7 @@
 # synth.__main__
 
 import argparse
+import subprocess
 import sys
 
 import synth.metadata
@@ -37,7 +38,8 @@ def get_parser():
             'add',
             help='Track the repository at <origin>')
     add_parser.add_argument('origin', metavar='<origin>')
-    add_parser.add_argument('name', metavar='<name>', nargs='?')
+    add_parser.add_argument('--ref', metavar='<ref>', default='HEAD')
+    add_parser.add_argument('--name', metavar='<name>')
 
     compose_parser = subparsers.add_parser(
             'compose',
@@ -77,11 +79,41 @@ def post_process_args(args, config):
             else:
                 raise CommandlineParsingError('target not specified')
 
+def git_cmd(args):
+    return subprocess.run(
+            ['git'] + args,
+            capture_output=True,
+            check=True,
+            encoding='ascii').stdout.split('\n')
+
 def synth_set(key, value):
     synth.usercfg.write({ key: value }.items())
 
 def synth_init():
     synth.metadata.initialize()
+
+def synth_add(origin, ref, name):
+    if origin[-1] == '/':
+        origin = origin[:-1]
+
+    if name is not None and synth.metadata.has_module(name):
+            raise RuntimeError(f'Module with {name} already exists')
+    else:
+        name = origin.split('/')[-1]
+        if synth.metadata.has_module(name):
+            raise RuntimeError(f'Module with inferred {name} already exists')
+
+    resolved_hash = None
+    for line in git_cmd(['ls-remote', origin, ref]):
+        if line == '':
+            continue
+        if resolved_hash:
+            raise RuntimeError(f'{ref} is ambiguous and lists multiple refs')
+        resolved_hash, _ = line.split()
+    if not resolved_hash:
+        raise RuntimeError(f'Could not find {ref} at {origin}')
+
+    synth.metadata.create_module(name, origin, resolved_hash)
 
 def main():
     args = get_parser().parse_args()
@@ -91,6 +123,9 @@ def main():
 
     if args.mode == 'init':
         return synth_init()
+
+    if args.mode == 'add':
+        return synth_add(args.origin, args.ref, args.name)
 
     post_process_args(args, synth.usercfg.read())
 
