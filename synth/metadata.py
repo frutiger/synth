@@ -34,8 +34,8 @@ def check_version():
     if version != 1:
         raise RuntimeError(f'Unsupported synth metadata version: {version}')
 
-def has_module(name):
-    return pathlib.Path(name).exists()
+def _get_module_dir(name) -> pathlib.Path:
+    return pathlib.Path('.synth')/'modules'/name
 
 def create_module(name, origin, commit):
     metadata = {
@@ -44,8 +44,11 @@ def create_module(name, origin, commit):
             'patches': [],
             }
 
-    module_dir = pathlib.Path(name)
-    module_dir.mkdir()
+    module_dir = _get_module_dir(name)
+    if module_dir.exists():
+        raise RuntimeError(f'Module {name} already exists')
+    module_dir.mkdir(parents=True)
+
     metadata_path = module_dir/'metadata'
 
     with open(metadata_path, 'w') as f:

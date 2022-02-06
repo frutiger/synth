@@ -96,12 +96,8 @@ def synth_add(origin, ref, name):
     if origin[-1] == '/':
         origin = origin[:-1]
 
-    if name is not None and synth.metadata.has_module(name):
-            raise RuntimeError(f'Module with {name} already exists')
-    else:
+    if name is None:
         name = origin.split('/')[-1]
-        if synth.metadata.has_module(name):
-            raise RuntimeError(f'Module with inferred {name} already exists')
 
     resolved_hash = None
     for line in git_cmd(['ls-remote', origin, ref]):
