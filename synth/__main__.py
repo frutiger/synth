@@ -114,8 +114,7 @@ def synth_add(origin, ref, name):
 def main():
     args = get_parser().parse_args()
     if args.mode == 'global':
-        synth_global(args.property, args.value)
-        return
+        return synth_global(args.property, args.value)
 
     if args.mode == 'init':
         return synth_init()
