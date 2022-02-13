@@ -1,11 +1,12 @@
 # synth.config
 
+import collections.abc
 import configparser
 import pathlib
 
 import synth.metadata
 
-def validate_target_path(value):
+def validate_target_path(value: str) -> pathlib.Path:
     path = pathlib.Path(value)
     if not path.expanduser().is_dir():
         raise RuntimeError(f'target.path {value} is not a directory')
@@ -15,13 +16,13 @@ validators = {
         'target.path': validate_target_path,
         }
 
-def validate_item(key, value):
+def validate_item(key: str, value: str) -> pathlib.Path:
     if key not in validators.keys():
         raise RuntimeError(f'Unknown config key: {key}')
 
     return validators[key](value)
 
-def read(skip_validation=False):
+def read(skip_validation: bool=False) -> configparser.ConfigParser:
     parser = configparser.ConfigParser()
 
     path = synth.metadata.get_config_path()
@@ -39,7 +40,7 @@ def read(skip_validation=False):
 
     return parser
 
-def write(items):
+def write(items: collections.abc.ItemsView[str, str]) -> None:
     validated_items = {}
     for key, value in items:
         validated_items[key] = str(validate_item(key, value))

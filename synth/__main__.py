@@ -1,9 +1,10 @@
 # synth.__main__
 
 import argparse
+import configparser
 import pathlib
 import subprocess
-import sys
+import typing
 
 import synth.metadata
 import synth.config
@@ -22,7 +23,7 @@ class CustomFormatter(argparse.RawDescriptionHelpFormatter):
             result = '\n'.join(lines)
         return result
 
-def get_parser():
+def get_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(formatter_class=CustomFormatter)
 
     subparsers = parser.add_subparsers(
@@ -69,7 +70,9 @@ def get_parser():
 
     return parser
 
-def post_process_args(args, config):
+def post_process_args(
+        args: argparse.Namespace,
+        config: configparser.ConfigParser) -> None:
     if args.mode == 'compose' or args.mode == 'extract':
         config_target_path = config.get('target', 'path', fallback=None)
         if config_target_path:
@@ -79,7 +82,9 @@ def post_process_args(args, config):
                 raise CommandlineParsingError('target not specified')
             args.target = args.names.pop()
 
-def git_cmd(args, working_dir=None):
+def git_cmd(
+        args: list[str],
+        working_dir: typing.Optional[pathlib.Path]=None) -> list[str]:
     return subprocess.run(
             ['git'] + args,
             capture_output=True,
@@ -87,13 +92,13 @@ def git_cmd(args, working_dir=None):
             cwd=working_dir,
             encoding='ascii').stdout.split('\n')
 
-def synth_config(property, value):
+def synth_config(property: str, value: str) -> None:
     synth.config.write({ property: value }.items())
 
-def synth_init():
+def synth_init() -> None:
     synth.metadata.initialize()
 
-def synth_add(origin, ref, name):
+def synth_add(origin: str, ref: str, name: str) -> None:
     if origin[-1] == '/':
         origin = origin[:-1]
 
@@ -112,27 +117,34 @@ def synth_add(origin, ref, name):
 
     synth.metadata.create_module(name, origin, resolved_hash)
 
-def synth_compose(target, names):
-    target = pathlib.Path(target)
-    if len(names) == 0:
+def synth_compose(raw_target: str, raw_names: list[str]) -> None:
+    target = pathlib.Path(raw_target)
+    if len(raw_names) == 0:
         names = synth.metadata.get_module_names()
+    else:
+        names = iter(raw_names)
     for name in names:
         module = synth.metadata.get_module(name)
         print(f'Composing {name} from {module["origin"]} at '
               f'{module["commit"]}')
         dest = target/name
         if not dest.exists():
-            git_cmd(['clone', module['origin'], dest])
+            git_cmd(['clone', module['origin'], str(dest)])
         git_cmd(['fetch', 'origin', module['commit']], dest)
         git_cmd(['reset', '--hard', module['commit']], dest)
         for patch in synth.metadata.get_patches(name):
             print(f'Applying patch {patch.stem}')
-            git_cmd(['apply', patch.resolve()], dest)
+            git_cmd(['apply', str(patch.resolve())], dest)
 
-def synth_extract(target, names, upstream):
-    target = pathlib.Path(target)
-    if len(names) == 0:
+def synth_extract(
+        raw_target: str,
+        raw_names: list[str],
+        upstream: str) -> None:
+    target = pathlib.Path(raw_target)
+    if len(raw_names) == 0:
         names = synth.metadata.get_module_names()
+    else:
+        names = iter(raw_names)
     for name in names:
         src = target/name
         if not src.is_dir():
@@ -148,28 +160,28 @@ def synth_extract(target, names, upstream):
             'format-patch',
             upstream,
             '-o',
-            synth.metadata.get_patch_dir(name).resolve()],
+            str(synth.metadata.get_patch_dir(name).resolve())],
             src)
 
-def main():
+def main() -> None:
     args = get_parser().parse_args()
     if args.mode == 'config':
-        return synth_config(args.property, args.value)
+        synth_config(args.property, args.value)
 
     if args.mode == 'init':
-        return synth_init()
+        synth_init()
 
     if args.mode == 'add':
-        return synth_add(args.origin, args.ref, args.name)
+        synth_add(args.origin, args.ref, args.name)
 
     post_process_args(args, synth.config.read())
 
     if args.mode == 'compose':
-        return synth_compose(args.target, args.names)
+        synth_compose(args.target, args.names)
 
     if args.mode == 'extract':
-        return synth_extract(args.target, args.names, args.upstream)
+        synth_extract(args.target, args.names, args.upstream)
 
 if __name__ == '__main__':
-    sys.exit(main())
+    main()
 
