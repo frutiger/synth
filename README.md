@@ -20,18 +20,24 @@ reasonably modern version of `git` is available in the user's `PATH`.
     A `<name>` must be specified if a module already exists with the inferred
     `<name>`.
 
-* `synth compose [<name>...] <target>`
+* `synth compose [<name>...] [<target>]`
 
     Compose a directory structure at `<target>` from the constitutents of this
     monorepo, applying any patches that were extracted (see `synth extract`)
     earlier.
 
-    If `<name>`s are specified, only add/update those constituents.
+    If `<name>`s are specified, only compose those constituents, otherwise
+    compose all constitutents.
 
-* `synth extract <name> <target>`
+* `synth extract [<name>...] [<target>] [--upstream=<upstream>]`
 
-    Extract any modifications to the module at `<target>/<name>` into a patch
-    series tracked within this `synth` repo.
+    Extract any modifications to all the modules at `<target>` from an upstream
+    ref to the current `HEAD` into a patch series tracked within this `synth`
+    repo.  By default, `@{upstream}` is used but this can be overriden on the
+    commandline.
+
+    If `<name>`s are specified, only extract those constituents, otherwise
+    extract all constitutents.
 
 * `synth config <property> <value>`
 

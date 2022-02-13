@@ -3,27 +3,35 @@
 import json
 import pathlib
 
+VERSION = 1
+SYNTH_DIR = pathlib.Path('.synth')
+
 def initialize():
-    system_dir = pathlib.Path('.synth')
-    if system_dir.exists():
+    if SYNTH_DIR.exists():
         raise RuntimeError('synth configuration already exists here')
-    system_dir.mkdir()
+    SYNTH_DIR.mkdir()
 
     metadata = {
-            'version': 1,
+            'version': VERSION,
             }
 
-    metadata_path = system_dir/'metadata'
+    metadata_path = SYNTH_DIR/'metadata'
     with open(metadata_path, 'w') as f:
         json.dump(metadata, f, indent=2)
         f.write('\n')
 
-def check_version():
-    system_dir = pathlib.Path('.synth')
-    if not system_dir.is_dir():
-        raise RuntimeError('synth configuration not found here')
+def _discover_dir():
+    candidate = pathlib.Path.cwd()
 
-    metadata_path = system_dir/'metadata'
+    while not candidate.samefile(candidate.root):
+        if (candidate/SYNTH_DIR).is_dir():
+            return candidate/SYNTH_DIR
+        candidate = candidate.parent
+
+    raise RuntimeError('Not in a synth repo')
+
+def _check_version(synth_dir):
+    metadata_path = synth_dir/'metadata'
     with open(metadata_path) as f:
         metadata = json.load(f)
 
@@ -31,21 +39,21 @@ def check_version():
         raise RuntimeError('Corrupt synth metadata')
 
     version = metadata['version']
-    if version != 1:
+    if version != VERSION:
         raise RuntimeError(f'Unsupported synth metadata version: {version}')
 
 def get_config_path():
-    check_version()
-    return pathlib.Path('.synth')/'config'
+    return _discover_dir()/'config'
 
 def _get_module_dir(name) -> pathlib.Path:
-    return pathlib.Path('.synth')/'modules'/name
+    synth_dir = _discover_dir()
+    _check_version(synth_dir)
+    return synth_dir/'modules'/name
 
 def create_module(name, origin, commit):
     metadata = {
             'origin': origin,
             'commit': commit,
-            'patches': [],
             }
 
     module_dir = _get_module_dir(name)
@@ -54,8 +62,44 @@ def create_module(name, origin, commit):
     module_dir.mkdir(parents=True)
 
     metadata_path = module_dir/'metadata'
-
     with open(metadata_path, 'w') as f:
         json.dump(metadata, f, indent=2)
         f.write('\n')
+
+    (module_dir/'patches').mkdir()
+
+def get_module(name):
+    module_dir = _get_module_dir(name)
+    if not module_dir.is_dir():
+        raise RuntimeError(f'Module {name} does not exist')
+
+    metadata_path = module_dir/'metadata'
+    with open(metadata_path) as f:
+        return json.load(f)
+
+def update_module(name, module):
+    module_dir = _get_module_dir(name)
+    if not module_dir.is_dir():
+        raise RuntimeError(f'Module {name} does not exist')
+
+    metadata_path = module_dir/'metadata'
+    with open(metadata_path, 'w') as f:
+        return json.dump(module, f, indent=2)
+
+def get_module_names():
+    synth_dir = _discover_dir()
+    _check_version(synth_dir)
+    for path in (synth_dir/'modules').iterdir():
+        yield path.stem
+
+def get_patch_dir(name):
+    module_dir = _get_module_dir(name)
+    return module_dir/'patches'
+
+def clear_patches(name):
+    for patch in get_patch_dir(name).iterdir():
+        patch.unlink()
+
+def get_patches(name):
+    yield from get_patch_dir(name).iterdir()
 
