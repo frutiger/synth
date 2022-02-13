@@ -34,6 +34,10 @@ def check_version():
     if version != 1:
         raise RuntimeError(f'Unsupported synth metadata version: {version}')
 
+def get_config_path():
+    check_version()
+    return pathlib.Path('.synth')/'config'
+
 def _get_module_dir(name) -> pathlib.Path:
     return pathlib.Path('.synth')/'modules'/name
 

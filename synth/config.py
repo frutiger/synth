@@ -1,7 +1,9 @@
-# synth.usercfg
+# synth.config
 
 import configparser
 import pathlib
+
+import synth.metadata
 
 def validate_target_path(value):
     path = pathlib.Path(value)
@@ -22,7 +24,7 @@ def validate_item(key, value):
 def read(skip_validation=False):
     parser = configparser.ConfigParser()
 
-    path = pathlib.Path('~/.synth.cfg').expanduser()
+    path = synth.metadata.get_config_path()
     if not path.is_file():
         return parser
 
@@ -44,7 +46,7 @@ def write(items):
 
     parser = configparser.ConfigParser()
 
-    path = pathlib.Path('~/.synth.cfg').expanduser()
+    path = synth.metadata.get_config_path()
     parser.read(path)
 
     for key, value in validated_items.items():

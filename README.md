@@ -33,10 +33,10 @@ reasonably modern version of `git` is available in the user's `PATH`.
     Extract any modifications to the module at `<target>/<name>` into a patch
     series tracked within this `synth` repo.
 
-* `synth global <property> <value>`
+* `synth config <property> <value>`
 
-    Update the global configuration file at `~/synth.cfg` to set the
-    `<property>` to `<value>`. The following properties are supported:
+    Update this repository's configuration file to set the `<property>` to
+    `<value>`. The following properties are supported:
 
     * `target.path`
 
