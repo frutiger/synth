@@ -158,6 +158,7 @@ def synth_extract(
         synth.metadata.clear_patches(name)
         git_cmd([
             'format-patch',
+            '-N',
             upstream,
             '-o',
             str(synth.metadata.get_patch_dir(name).resolve())],

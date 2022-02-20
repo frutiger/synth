@@ -1,7 +1,7 @@
 from setuptools import setup
 
 setup(name='synth',
-      version='0.1.0',
+      version='0.1.1',
       description='Simulate a monorepo in a polyrepo world',
       url='https://github.com/frutiger/synth',
       author='Masud Rahman',
