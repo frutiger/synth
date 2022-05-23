@@ -108,8 +108,12 @@ def get_patch_dir(name: str) -> Path:
     return module_dir/'patches'
 
 def clear_patches(name: str) -> None:
-    for patch in get_patch_dir(name).iterdir():
-        patch.unlink()
+    patch_dir = get_patch_dir(name)
+    if patch_dir.exists():
+        for patch in patch_dir.iterdir():
+            patch.unlink()
+    else:
+        patch_dir.mkdir(parents=True)
 
 def get_patches(name: str) -> collections.abc.Iterator[Path]:
     yield from get_patch_dir(name).iterdir()
