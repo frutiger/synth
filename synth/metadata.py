@@ -23,7 +23,7 @@ def initialize() -> None:
 
     metadata_path = SYNTH_DIR/'metadata'
     with open(metadata_path, 'w') as f:
-        json.dump(metadata, f, indent=2)
+        json.dump(metadata, f, sort_keys=True, indent=2)
         f.write('\n')
 
 def _discover_dir() -> Path:
@@ -69,7 +69,7 @@ def create_module(name: str, origin: str, commit: str) -> None:
 
     metadata_path = module_dir/'metadata'
     with open(metadata_path, 'w') as f:
-        json.dump(metadata, f, indent=2)
+        json.dump(metadata, f, sort_keys=True, indent=2)
         f.write('\n')
 
     (module_dir/'patches').mkdir()
@@ -94,7 +94,8 @@ def update_module(name: str, module: Module) -> None:
 
     metadata_path = module_dir/'metadata'
     with open(metadata_path, 'w') as f:
-        return json.dump(module, f, indent=2)
+        json.dump(module, f, sort_keys=True, indent=2)
+        f.write('\n')
 
 def get_module_names() -> collections.abc.Iterator[str]:
     synth_dir = _discover_dir()
