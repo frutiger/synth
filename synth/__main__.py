@@ -132,9 +132,9 @@ def synth_compose(raw_target: str, raw_names: list[str]) -> None:
             git_cmd(['clone', module['origin'], str(dest)])
         git_cmd(['fetch', 'origin', module['commit']], dest)
         git_cmd(['reset', '--hard', module['commit']], dest)
-        for patch in synth.metadata.get_patches(name):
-            print(f'Applying patch {patch.stem}')
-            git_cmd(['apply', str(patch.resolve())], dest)
+        patches = synth.metadata.get_patch_dir(name)
+        if patches.exists():
+            git_cmd(['am', '-3', str(patches)], dest)
 
 def synth_extract(
         raw_target: str,
