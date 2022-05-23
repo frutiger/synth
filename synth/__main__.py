@@ -151,7 +151,8 @@ def synth_extract(
             raise RuntimeError(f'{name} has not been composed')
 
         module = synth.metadata.get_module(name)
-        module['commit'] = git_cmd(['rev-parse', upstream], src)[0]
+        git_cmd(['fetch', module['origin'], upstream], src)
+        module['commit'] = git_cmd(['rev-parse', 'FETCH_HEAD'], src)[0]
         synth.metadata.update_module(name, module)
 
         print(f'Extracting patches from {name} since {upstream}')
@@ -159,7 +160,7 @@ def synth_extract(
         git_cmd([
             'format-patch',
             '-N',
-            upstream,
+            'FETCH_HEAD',
             '-o',
             str(synth.metadata.get_patch_dir(name).resolve())],
             src)
