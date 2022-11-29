@@ -115,6 +115,7 @@ def synth_add(origin: str, ref: str, name: str) -> None:
     if not resolved_hash:
         raise RuntimeError(f'Could not find {ref} at {origin}')
 
+    print(f'Adding {name} from {origin} at {ref}')
     synth.metadata.create_module(name, origin, resolved_hash)
 
 def synth_compose(raw_target: str, raw_names: list[str]) -> None:
