@@ -12,6 +12,9 @@ import synth.config
 class CommandlineParsingError(RuntimeError):
     pass
 
+class NotComposedError(RuntimeError):
+    pass
+
 class CustomFormatter(argparse.RawDescriptionHelpFormatter):
     def _format_action(self, action: argparse.Action) -> str:
         result = super()._format_action(action)
@@ -149,7 +152,7 @@ def synth_extract(
     for name in names:
         src = target/name
         if not src.is_dir():
-            raise RuntimeError(f'{name} has not been composed')
+            raise NotComposedError(f'{name} has not been composed')
 
         module = synth.metadata.get_module(name)
         git_cmd(['fetch', module['origin'], upstream], src)
